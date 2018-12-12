@@ -29,7 +29,12 @@ namespace ShaftApp
         /// <param name="lengthBracing"></param>
         /// <param name="lengthHead"></param>
         /// <param name="lengthLeg"></param>
-        public Parameters(double diameterBracing, double diameterHead, double diameterLeg, double lengthBracing, double lengthHead, double lengthLeg)
+        public Parameters(double diameterBracing,
+            double diameterHead, 
+            double diameterLeg,
+            double lengthBracing, 
+            double lengthHead, 
+            double lengthLeg)
         {
             this._diameterBracing = diameterBracing;
             this._diameterHead = diameterHead;
@@ -38,7 +43,7 @@ namespace ShaftApp
             this._lengthHead = lengthHead;
             this._lengthLeg = lengthLeg;
 
-            //  Validate();
+              Validate();
 
         }
 
@@ -47,8 +52,41 @@ namespace ShaftApp
         private void Validate()
         {
 
+            if (_diameterBracing<_diameterLeg || _diameterBracing < 20 || _diameterBracing > 2) 
+            {
+                throw new ArgumentException("Диаметр крепления должен быть меньше диаметра ножки, от 2 до 20 см"); 
+            }
 
-           //////////////////////////////////////////////
+
+
+            if (_diameterLeg < _diameterHead || _diameterLeg < 30|| _diameterLeg > 3)  
+            {
+                throw new ArgumentException("Диаметр ножки должен быть меньше диаметра головки , от 3 до 30 см");
+            }
+
+
+            if (_diameterHead < 40|| _diameterHead > 4)  // добавить от скольки долен быть 
+            {
+                throw new ArgumentException("Диаметр головки должен быть от 4 до 40 см");
+            }
+
+
+            if (_lengthBracing < _lengthLeg || _lengthBracing < 25|| _lengthBracing>2)  // добавить от скольки долен быть 
+            {
+                throw new ArgumentException("Длина крепления должна быть меньше длины ножки, от 2 до 25 см");
+            }
+
+
+            if (_lengthLeg < 40|| _lengthLeg > 4)  // добавить от скольки долен быть 
+            {
+                throw new ArgumentException("Длина ножки должна быть от 4 до 40 см");
+            }
+
+
+            if ( _lengthHead < 20|| _lengthHead>2 || _lengthHead<_lengthLeg)  // добавить от скольки долен быть 
+            {
+                throw new ArgumentException("Длина крепления должна быть меньше длины ножки, от 2 до 20 см");
+            }
 
 
         }
