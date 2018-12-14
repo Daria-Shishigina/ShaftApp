@@ -17,28 +17,43 @@ namespace ShaftAppForm
         public GUI()
         {
             InitializeComponent();
-            _kompasConnector = new KompasConnector();
+
         }
 
         private DetailBuilder _detailBuilder;
-        private KompasConnector _kompasConnector;
+     
+        private KompasConnector _kompasConnector = new KompasConnector();
         private Parameters _parameters;
+        private KompasObject _kompas;
 
         private void buildButton_Click(object sender, EventArgs e)
         {
-          _kompasConnector.Connector();
-                
+            try
+            {
+
+                _kompasConnector.Connector();
+                _kompas = _kompasConnector.KompasObject;
+                buildButton.Enabled = false;
 
 
-            Parameters parameters = new Parameters(Convert.ToDouble(diamBracingTextBox.Text), 
-                Convert.ToDouble(diamHeadTextBox.Text),
-                Convert.ToDouble(diamLegTextBox.Text),
-                Convert.ToDouble(lengthBracingTextBox.Text),
-                Convert.ToDouble(lengthBracingTextBox.Text), 
-                Convert.ToDouble(lengthBracingTextBox.Text));
+                Parameters parameters = new Parameters (Convert.ToDouble(diamBracingTextBox.Text),
+                    Convert.ToDouble(diamHeadTextBox.Text),
+                    Convert.ToDouble(diamLegTextBox.Text),
+                    Convert.ToDouble(lengthBracingTextBox.Text),
+                    Convert.ToDouble(lengthHeadTextBox.Text),
+                    Convert.ToDouble(lengthLegTextBox.Text));
 
-            DetailBuilder detailBuilder = new DetailBuilder(_kompasConnector);
-            detailBuilder.BuildDetail(parameters);
+
+                DetailBuilder detailBuilder = new DetailBuilder(_kompas);
+                detailBuilder.BuildDetail(parameters);
+
+            }
+
+            catch (ArgumentException exeption)
+
+            {
+               MessageBox.Show(exeption.Message);
+            }
 
         }
 
