@@ -31,17 +31,16 @@ namespace ShaftAppForm
             try
             {
 
-                _kompasConnector.Connector();
-                _kompas = _kompasConnector.KompasObject;
-                buildButton.Enabled = false;
-
-
                 Parameters parameters = new Parameters (Convert.ToDouble(diamBracingTextBox.Text),
                     Convert.ToDouble(diamHeadTextBox.Text),
                     Convert.ToDouble(diamLegTextBox.Text),
                     Convert.ToDouble(lengthBracingTextBox.Text),
                     Convert.ToDouble(lengthHeadTextBox.Text),
                     Convert.ToDouble(lengthLegTextBox.Text));
+
+                _kompasConnector.Connector();
+                _kompas = _kompasConnector.KompasObject;
+                buildButton.Enabled = false;
 
 
                 DetailBuilder detailBuilder = new DetailBuilder(_kompas);
@@ -62,7 +61,7 @@ namespace ShaftAppForm
         {
 
 
-            //////////////////////////////////////////////
+            //////////////////////////////////////////////ввод букв ограничение цветом+ вывод ошибки 
 
 
         }

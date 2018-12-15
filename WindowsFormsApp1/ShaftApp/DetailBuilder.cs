@@ -38,8 +38,14 @@ namespace ShaftApp
             _doc3D = _kompas.Document3D();
             _doc3D.Create(false, true);///
 
-            BuildModel(parameters.DiameterBracing, parameters.DiameterHead, parameters.DiameterLeg);
-            BuildExtrusion(parameters.LengthBracing, parameters.LengthHead, parameters.LengthLeg);
+            BuildModel(parameters.DiameterHead);
+            BuildExtrusion(parameters.LengthHead);
+
+            BuildModel(parameters.DiameterLeg);
+            BuildExtrusion(parameters.LengthLeg);
+
+            BuildModel(parameters.DiameterBracing);
+            BuildExtrusion(parameters.LengthBracing);
 
         }
 
@@ -50,7 +56,7 @@ namespace ShaftApp
         /// <param name="diameterBracing"></param>
         /// <param name="diameterHead"></param>
         /// <param name="diameterLeg"></param>
-        private void BuildModel(double diameterBracing,double diameterHead,double diameterLeg)
+        private void BuildModel(double diameter)
         {
 
             #region Константы для эскиза
@@ -79,9 +85,7 @@ namespace ShaftApp
             //Входим в режим редактирования эскиза
             ksDocument2D Document2D = SketchDefinition.BeginEdit();
             //Строим окружность 
-            Document2D.ksCircle(0, 0, diameterBracing / 2, 1);
-    //        Document2D.ksCircle(0, 0, diameterHead / 2, 1);
-   //         Document2D.ksCircle(0, 0, diameterLeg / 2, 1);
+            Document2D.ksCircle(0, 0, diameter / 2, 1);
             //Выходим из режима редактирования эскиза
             SketchDefinition.EndEdit();
         }
@@ -94,7 +98,7 @@ namespace ShaftApp
         /// <param name="lengthHead"></param>
         /// <param name="lengthLeg"></param>
 
-        private void BuildExtrusion(double lengthBracing, double lengthHead, double lengthLeg)
+        private void BuildExtrusion(double length)
         {
             #region Константы для выдавливания
 
@@ -112,16 +116,7 @@ namespace ShaftApp
             ksBaseExtrusionDefinition BaseExtrusionDefinition = EntityExtrusion.GetDefinition();
             //Устанавливаем параметры операции выдавливания
 
-            BaseExtrusionDefinition.SetSideParam(true, etBlind, lengthBracing, 0, true);
-            BaseExtrusionDefinition.SetSideParam(false, etBlind, lengthLeg, 0, true);
-
-            // BaseExtrusionDefinition.SetSideParam(true, etBlind, lengthLeg, 0, true);
-
-            //BaseExtrusionDefinition.SetSideParam(true, etBlind, lengthHead, 0, true);
-
-
-
-
+            BaseExtrusionDefinition.SetSideParam(true, etBlind, length, 0, true);
 
             //Устанавливаем эскиз операции выдавливания
             BaseExtrusionDefinition.SetSketch(_entity);
