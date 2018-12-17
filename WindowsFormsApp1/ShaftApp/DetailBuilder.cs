@@ -21,6 +21,10 @@ namespace ShaftApp
         private ksEntity _entity;
         private ksPart _part;
 
+        private ksRectangleParam _par; 
+
+
+
 
         /// <summary>
         /// Конструктор 
@@ -36,17 +40,30 @@ namespace ShaftApp
         {
          
             _doc3D = _kompas.Document3D();
-            _doc3D.Create(false, true);///
+            _doc3D.Create(false, true);///////////
 
             BuildModel(parameters.DiameterHead);
             BuildExtrusion(parameters.LengthHead);
 
             BuildModel(parameters.DiameterLeg);
             BuildExtrusion(parameters.LengthLeg);
+  
+            BuildChamfer(parameters.DiameterHead, parameters.DiameterLeg);
 
             BuildModel(parameters.DiameterBracing);
             BuildExtrusion(parameters.LengthBracing);
 
+
+
+
+
+            BuildBracing(parameters.DiameterBracing,parameters.LengthBracing);
+           // BuildModelBracing(parameters.LengthBracing,parameters.LengthHead,parameters.LengthLeg);
+
+           
+
+            // вырезание 
+            // отверстие 
         }
 
 
@@ -94,9 +111,6 @@ namespace ShaftApp
         /// <summary>
         /// выдавливание
         /// </summary>
-        /// <param name="lengthBracing"></param>
-        /// <param name="lengthHead"></param>
-        /// <param name="lengthLeg"></param>
 
         private void BuildExtrusion(double length)
         {
@@ -123,12 +137,227 @@ namespace ShaftApp
             //Создаем операцию выдавливания
             EntityExtrusion.Create();
 
+            //Устанавливаем полутоновое изображение модели
+            _doc3D.drawMode = vm_Shaded;
+            //Включаем отображение каркаса
+            _doc3D.shadedWireframe = true;
+      }
+
+
+
+          /// <summary>
+        /// Операция "Фаска" для всех граней
+        /// </summary>
+        /// 
+        private void BuildChamfer(double diameter, double diamete)
+     
+        {
+
+            #region Константы для фаски
+            // Тип получения массива объектов. Выбираются поверхности.
+            const int o3d_face = 6;
+            // Тип объекта NewEntity. Указывает на операцию "Фаска"
+            const int o3d_chamfer = 33;
+            //Устанавливаем tg 45         
+            //double index = 45;
+            double index = 1.6;
+            #endregion
+
+            //Получаем интерфейс объекта "фаска"
+
+            ksEntity EntityChamferIn = (_part.NewEntity(o3d_chamfer));
+
+
+            //Получаем интерфейс параметров объекта 
+
+            ksChamferDefinition ChamferDefinitionIn = EntityChamferIn.GetDefinition();
+
+            //Не продолжать по касательным ребрам
+            ChamferDefinitionIn.tangent = false;
+
+
+            //Устанавливаем параметры фаски 
+            ChamferDefinitionIn.SetChamferParam(true, diameter - diamete, (diameter - diamete) / index);
+
+            //Получаем массив поверхностей детали
+
+
+            ksEntityCollection EntityCollectionPart = (_part.EntityCollection(o3d_face));
+
+            //Получаем массив поверхностей, на которых будет строиться фаска
+
+            ksEntityCollection EntityCollectionChamferIn = (ChamferDefinitionIn.array());
+
+            // EntityCollectionChamferIn.Clear();
+
+            //Заполняем массив поверхностей, на которых будет строится фаска (Внутреняя поверхность)
+
+             EntityCollectionChamferIn.Add(EntityCollectionPart.GetByIndex(1));
+
+
+            EntityCollectionChamferIn.Add(EntityCollectionPart.GetByIndex(4));
+
+            //Создаем фаску
+
+            EntityChamferIn.Create();
+
+        }
+
+
+
+
+
+
+
+
+        /// <summary>
+        /// Создание эскиза отверстия крепления 
+        /// </summary>
+
+        private void BuildBracing(double diameterBracing,double lengthBracing)
+        {
+
+            #region Константы для эскиза
+            // Тип компо­нента Get Param. Главный компонент, в составе которо­го находится новый или редактируе­мый компонент.
+            const int pTop_part = -1;
+
+            //Тип объекта NewEntity. Указывает на создание эскиза.
+            const int o3d_sketch = 5;
+
+            // Тип объекта GetDefaultEntity. Указывает на работу в плостости XOY.
+            const int o3d_planeXOY = 1;
+
+            const int o3d_planeOffset = 14;
+
+
+            //Расположение прямоугольника по центру 
+
+            const int ko_RectangleParam = 91;
+
+            
+            #endregion
+
+
+            _part = _doc3D.GetPart(pTop_part);
+            
+            //Получаем интерфейс объекта "плоскость XOZ"
+            ksEntity EntityPlane = _part.GetDefaultEntity(o3d_planeXOY);
+
+
+            ///Смещение плоскости
+
+            ksEntity PlaneOff = _part.NewEntity(o3d_planeOffset);
+            ksPlaneOffsetDefinition planeOffsetDefinition = PlaneOff.GetDefinition();
+            planeOffsetDefinition.direction = true;
+            planeOffsetDefinition.offset = lengthBracing;
+          
+
+            planeOffsetDefinition.SetPlane(EntityPlane);
+            //Создаем эскиз
+            PlaneOff.Create();
+
+
+
+            ////Получаем интерфейс объекта "Эскиз"
+            //_entity = _part.NewEntity(o3d_sketch);
+
+            ksEntity Entity = _part.NewEntity(o3d_sketch);
+            ksSketchDefinition sketchDefinition = Entity.GetDefinition();
+            sketchDefinition.SetPlane(PlaneOff);
+            Entity.Create();
+            ksDocument2D Document2D = sketchDefinition.BeginEdit();
+
+
+            ////Строим прямоугольник
+            _par = _kompas.GetParamStruct(ko_RectangleParam);
+
+            _par.height = diameterBracing / 2;
+            _par.width = diameterBracing;
+            _par.x = -(diameterBracing / 2);
+            _par.y = -(diameterBracing / 4);
+            _par.ang = 0;
+            _par.style = 1;
+
+            Document2D.ksRectangle(_par, 0);
+
+            //Выходим из режима редактирования эскиза
+            sketchDefinition.EndEdit();
+
+
+
+
+
+
+
+
+
+
+            #region Константы для выдавливания
+
+            //Тип объекта NewEntity. Указывает на создание операции выдавливания.
+
+            const int o3d_cutExtrusion = 26;
+
+
+
+            // Тип обекта DrawMode. Устанавливает полутоновое изображение модели
+            const int vm_Shaded = 3;
+            //Тип выдавливания. Строго на глубину
+            const int etBlind = 0;
+            #endregion
+
+
+
+
+
+            //Получаем интерфейс объекта "операция вырезание выдавливанием"   
+
+
+            ksEntity EntityCutExtrusion = _part.NewEntity(o3d_cutExtrusion);
+            //Получаем интерфейс параметров операции 
+
+
+
+            ksCutExtrusionDefinition CutExtrusionDefinition = EntityCutExtrusion.GetDefinition();
+
+            //Вычитание элементов   
+           
+            CutExtrusionDefinition.cut=true;
+            //Прямое направление    
+            CutExtrusionDefinition.directionType=0;
+            //Устанавливаем параметры выдавливания    
+            CutExtrusionDefinition.SetSideParam(true,etBlind,2,0,false);
+            //Устанавливаем экиз операции   
+            CutExtrusionDefinition.SetSketch(Entity);   
+            //Создаем операцию вырезания выдавливанием 
+             EntityCutExtrusion.Create();
+
 
             //Устанавливаем полутоновое изображение модели
             _doc3D.drawMode = vm_Shaded;
             //Включаем отображение каркаса
             _doc3D.shadedWireframe = true;
+
+
+
+
+
+
         }
+
+
+
+        /// <summary>
+        /// выдавливание
+        /// </summary>
+     
+        private void BuildModelBracing(double lengthBracing,double lengthLeg,double lengthHead)
+        {
+            
+        }
+
+        
+        
 
 
     }
